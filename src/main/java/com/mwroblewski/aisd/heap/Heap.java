@@ -63,11 +63,11 @@ public class Heap<T> {
     private void heapDown() {
         int i = 0;
         int j = 1;
-        while (j < this.lastIndex) {
-            if(j+1 < this.lastIndex && this.comparator.compare(this.data[j+1], data[j+1]) == 1)
+        while (j <= this.lastIndex) {
+            if(j+1 <= this.lastIndex && this.comparator.compare(this.data[j+1], data[j]) == 1)
                 j++;
 
-            if(this.comparator.compare(this.data[i], data[j]) > 0)
+            if(this.comparator.compare(this.data[i], data[j]) == 1)
                 return;
             else{
                 this.swap(i,j);
@@ -89,7 +89,9 @@ public class Heap<T> {
         if(this.lastIndex == -1)
             return null;
         T tmp = data[0];
-        data[0] = data[this.lastIndex--];
+        data[0] = data[this.lastIndex];
+        data[lastIndex--] = null;
+
         this.heapDown();
 
         return tmp;

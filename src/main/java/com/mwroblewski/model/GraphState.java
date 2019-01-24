@@ -7,13 +7,13 @@ import lombok.*;
 @Setter
 public class GraphState extends TreeState {
 
-    private int graphKey;
+    private int graphIndex;
     private String treeKey;
     private Tree<TreeState> tree;
 
-    public GraphState(Board board, int graphKey, String treeKey) {
+    public GraphState(Board board, int graphIndex, String treeKey) {
         super(board);
-        this.graphKey = graphKey;
+        this.graphIndex = graphIndex;
         this.treeKey = treeKey;
     }
 }

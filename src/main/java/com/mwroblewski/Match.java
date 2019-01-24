@@ -1,19 +1,25 @@
 package com.mwroblewski;
 
 import com.mwroblewski.aisd.graph.Graph;
+import com.mwroblewski.aisd.heap.Heap;
 import com.mwroblewski.aisd.tree.Tree;
 import com.mwroblewski.builder.GraphBuilder;
 import com.mwroblewski.builder.TreeBuilder;
 import com.mwroblewski.common.AdjacencyType;
+import com.mwroblewski.manager.MatchManager;
+import com.mwroblewski.model.Point;
 import com.mwroblewski.model.TreeState;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 public class Match {
 
     public static void main(String[] args) {
-        long s = System.currentTimeMillis();
-        Tree<TreeState> t = TreeBuilder.build(1, 1);
-//        Graph<Integer, TreeState, AdjacencyType> i = GraphBuilder.build(4);
-        System.out.print(System.currentTimeMillis() - s);
+        MatchManager m = new MatchManager();
+        m.game();
     }
 
 }

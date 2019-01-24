@@ -21,7 +21,11 @@ public class Board {
 
     private boolean isCorrectPoint(Point point) {
         return 0 <= point.getX() && point.getX() <= this.width
-            && 0 <= point.getY() && point.getY() <= this.height;
+                && 0 <= point.getY() && point.getY() <= this.height;
+    }
+
+    public int getSize() {
+        return this.width * this.height;
     }
 
     public boolean isFree(Point point) {
@@ -33,20 +37,18 @@ public class Board {
     }
 
     public boolean free(Point point) {
-        if(isCorrectPoint(point) && this.isSet(point)){
+        if (isCorrectPoint(point) && this.isSet(point)) {
             this.grid[point.getY()][point.getX()] = 0;
             return true;
-        }
-        else
+        } else
             return false;
     }
 
     public boolean set(Point point) {
-        if(isCorrectPoint(point) && this.isFree(point)){
+        if (isCorrectPoint(point) && this.isFree(point)) {
             this.grid[point.getY()][point.getX()] = 1;
             return true;
-        }
-        else
+        } else
             return false;
     }
 

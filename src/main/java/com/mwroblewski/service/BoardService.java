@@ -130,19 +130,33 @@ public class BoardService {
 
         for (int x = 0; x < board.getWidth(); x++) {
             if (board.getGrid()[0][x] == 0)
-                outterMotions.add(new OutterMotion(new Point(x, 0), new Point(x, board.getHeight()-1), AdjacencyType.TOP));
-            if (board.getGrid()[board.getHeight()-1][x] == 0)
-                outterMotions.add(new OutterMotion(new Point(x, board.getHeight()-1), new Point(x, 0), AdjacencyType.BOTTOM));
+                outterMotions.add(new OutterMotion(new Point(x, 0), AdjacencyType.TOP));
+            if (board.getGrid()[board.getHeight() - 1][x] == 0)
+                outterMotions.add(new OutterMotion(new Point(x, board.getHeight() - 1), AdjacencyType.BOTTOM));
         }
 
         for (int y = 0; y < board.getHeight(); y++) {
             if (board.getGrid()[y][0] == 0)
-                outterMotions.add(new OutterMotion(new Point(0, y), new Point(board.getWidth()-1, y), AdjacencyType.LEFT));
-            if (board.getGrid()[y][board.getWidth()-1] == 0)
-                outterMotions.add(new OutterMotion(new Point(board.getWidth()-1, y), new Point(0, y), AdjacencyType.RIGHT));
+                outterMotions.add(new OutterMotion(new Point(0, y), AdjacencyType.LEFT));
+            if (board.getGrid()[y][board.getWidth() - 1] == 0)
+                outterMotions.add(new OutterMotion(new Point(board.getWidth() - 1, y), AdjacencyType.RIGHT));
         }
 
         return outterMotions;
+    }
+
+    public Point getAdjacencyPoint(Board adjBoard, OutterMotion outterMotion) {
+        Point point = outterMotion.getPoint();
+        AdjacencyType type = outterMotion.getType();
+
+        if (type.equals(AdjacencyType.TOP))
+            return new Point(point.getX(), adjBoard.getHeight() - 1);
+        else if (type.equals(AdjacencyType.BOTTOM))
+            return new Point(point.getX(), 0);
+        else if (type.equals(AdjacencyType.LEFT))
+            return new Point(adjBoard.getWidth() - 1, point.getY());
+        else
+            return new Point(0, point.getY());
     }
 
 }
