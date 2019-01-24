@@ -15,5 +15,4 @@ public class Graph<K, V, T> {
         this.vertices = vertices;
         this.adjacencyMatrix = adjacencyMatrix;
     }
-
 }
