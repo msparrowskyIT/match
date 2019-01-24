@@ -10,6 +10,9 @@ public class Statistics {
     private int losses;
     private double rate;
 
+    public Statistics() {
+    }
+
     public Statistics(int wins, int losses) {
         this.wins = wins;
         this.losses = losses;

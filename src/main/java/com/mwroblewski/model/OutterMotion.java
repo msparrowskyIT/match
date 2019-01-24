@@ -1,21 +1,20 @@
 package com.mwroblewski.model;
 
+import com.mwroblewski.common.AdjacencyType;
 import lombok.*;
 
 @Getter
 @Setter
 public class OutterMotion {
 
-    public enum Type {
-        TOP, BOTTOM, LEFT, RIGHT
-    }
-
     private Point point;
-    private Type type;
-    private Statistics statistics = new Statistics(0,0);
+    private Point adjPoint;
+    private AdjacencyType type;
+    private Statistics statistics = new Statistics();
 
-    public OutterMotion(Point point, Type type){
+    public OutterMotion(Point point, Point adjPoint, AdjacencyType type){
         this.point = point;
+        this.adjPoint = adjPoint;
         this.type = type;
     }
 

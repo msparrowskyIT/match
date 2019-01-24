@@ -14,7 +14,7 @@ public class InnerMotion {
 
     private Point[] points;
     private Type type;
-    private Statistics statistics = new Statistics(0,0);
+    private Statistics statistics = new Statistics();
 
     public InnerMotion(Point[] points) {
         this.points = points;

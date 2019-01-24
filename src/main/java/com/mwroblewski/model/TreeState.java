@@ -9,9 +9,9 @@ import java.util.*;
 public class TreeState {
 
     private Board board;
-    private List<InnerMotion> innerMotions;
-    private List<OutterMotion> outterMotions;
-    private Statistics statistics = new Statistics(0,0);
+    private List<InnerMotion> innerMotions = new ArrayList<>();
+    private List<OutterMotion> outterMotions = new ArrayList<>();
+    private Statistics statistics = new Statistics();
 
     public TreeState(Board board) {
         this.board = board;

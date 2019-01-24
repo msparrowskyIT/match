@@ -1,19 +1,22 @@
 package com.mwroblewski.manager;
 
-import com.mwroblewski.aisd.graph.Graph;
-import com.mwroblewski.aisd.graph.GraphService;
-import com.mwroblewski.aisd.tree.Tree;
-import com.mwroblewski.builder.GraphBuilder;
-import com.mwroblewski.builder.TreeBuilder;
-import com.mwroblewski.model.InnerMotion;
-import com.mwroblewski.model.Point;
-import com.mwroblewski.model.TreeState;
-import com.mwroblewski.service.BoardService;
-
 import java.util.*;
-import java.util.concurrent.*;
 
 public class MatchManager {
+
+    private Set<String> getBoardSizes(int matchSize){
+        Set<String> boardSizes = new HashSet<>();
+        boardSizes.add("3x3");
+
+        int r = matchSize%3;
+        if(r != 0){
+            boardSizes.add("3x"+r);
+            boardSizes.add(r+"x3");
+            boardSizes.add(r+"x"+r);
+        }
+
+        return boardSizes;
+    }
 
 //    private GraphService graphService = new GraphService();
 //    private BoardService boardService = new BoardService();
@@ -68,9 +71,9 @@ public class MatchManager {
 //
 //        for (int i = 0; i < splitStr.length; i++) {
 //            String pointStr = splitStr[i];
-//            int index = pointStr.indexOf(";");
-//            int x = Integer.valueOf(splitStr[i].substring(1, index));
-//            int y = Integer.valueOf(splitStr[i].substring(index + 1, pointStr.length() - 1));
+//            int graphKey = pointStr.indexOf(";");
+//            int x = Integer.valueOf(splitStr[i].substring(1, graphKey));
+//            int y = Integer.valueOf(splitStr[i].substring(graphKey + 1, pointStr.length() - 1));
 //
 //            points[i] = new Point(x, y);
 //        }

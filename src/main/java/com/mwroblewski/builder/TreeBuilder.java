@@ -127,8 +127,6 @@ public class TreeBuilder {
         TreeState treeState = node.getData();
         if (node.isLeaf()) {
             treeState.setStatistics(new Statistics(0, 1));
-            treeState.setInnerMotions(new ArrayList<>());
-            treeState.setOutterMotions(new ArrayList<>());
             return;
         }
 
@@ -137,16 +135,13 @@ public class TreeBuilder {
         });
 
         Set<InnerMotion> innerMotions = boardService.getAllInnerMotions(treeState.getBoard());
-        if (innerMotions.size() == 0) {
+        if (innerMotions.size() == 0)
             treeState.getStatistics().addStatistics(0, 1, false);
-            treeState.setInnerMotions(new ArrayList<>());
-        } else
+        else
             setInnerMotions(new Tree<>(node), innerMotions);
 
         Set<OutterMotion> outterMotions = boardService.getAllOutterMotions(treeState.getBoard());
-        if (outterMotions.size() == 0) {
-            treeState.setOutterMotions(new ArrayList<>());
-        } else
+        if (!(outterMotions.size() == 0))
             setOutterMotions(new Tree<>(node), outterMotions);
     }
 

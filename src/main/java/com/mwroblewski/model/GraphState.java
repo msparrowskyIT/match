@@ -7,17 +7,13 @@ import lombok.*;
 @Setter
 public class GraphState extends TreeState {
 
-    public enum AdjacencyType {
-        TOP, BOTTOM, LEFT, RIGHT
-    }
-
-    private int index;
-    private String key;
+    private int graphKey;
+    private String treeKey;
     private Tree<TreeState> tree;
 
-    public GraphState(Board board, int index, String key) {
+    public GraphState(Board board, int graphKey, String treeKey) {
         super(board);
-        this.index = index;
-        this.key = key;
+        this.graphKey = graphKey;
+        this.treeKey = treeKey;
     }
 }
