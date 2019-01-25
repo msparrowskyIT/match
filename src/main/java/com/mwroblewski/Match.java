@@ -17,7 +17,7 @@ import java.util.List;
 
 public class Match {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         MatchManager m = new MatchManager();
         m.game();
     }

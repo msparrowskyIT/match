@@ -84,7 +84,7 @@ public class MatchManager {
         this.boardsInRow = matchSize % 3 == 0 ? matchSize / 3 : matchSize / 3 + 1;
         this.graph = GraphBuilder.build(this.matchSize);
 
-        System.out.print("ok");
+        System.out.println("OK");
     }
 
     private void buildTrees() {
@@ -99,7 +99,7 @@ public class MatchManager {
     }
 
     private void sendPoints(Point[] points) {
-        System.out.print(parseService.parsePoints(points));
+        System.out.println(parseService.parsePoints(points));
     }
 
     private void setGraph(Point[] points) {
@@ -111,27 +111,32 @@ public class MatchManager {
             this.fillGraph();
     }
 
-    private void setGraphWithRequest() {
+    private void setGraphInit() {
         Point[] points = parseService.parsePoints();
         this.setGraph(points);
 
-        System.out.print("ok");
+        System.out.println("OK");
     }
 
-    private void setGraphWithResponse(Point[] points) {
+    private void setGraphRequest() {
+        Point[] points = parseService.parsePoints();
+        this.setGraph(points);
+    }
+
+    private void setGraphResponse(Point[] points) {
         this.sendPoints(points);
         this.setGraph(points);
     }
 
     private void setAndFillGraphWithResponse(GraphState state, Tree<TreeState> tree,  InnerMotion motion) {
         Point[] points = this.preparePointsToSend(state, motion);
-        this.setGraphWithResponse(points);
+        this.setGraphResponse(points);
         this.fillGraphState(state, treeService.getTreeWithSetBoard(tree, state.getBoard()));
     }
 
     private void setAndFillGraphWithResponse(GraphState state, Tree<TreeState> tree,  OutterMotion motion) {
         Point[] points = this.preparePointsToSend(state, motion);
-        this.setGraphWithResponse(points);
+        this.setGraphResponse(points);
         this.fillGraphState(state, treeService.getTreeWithSetBoard(tree, state.getBoard()));
     }
 
@@ -227,21 +232,20 @@ public class MatchManager {
             InnerMotion innerMotion = this.getInnerMotionWithoutTrees(graphState);
             if (innerMotion != null) {
                 Point[] points = this.preparePointsToSend(graphState, innerMotion);
-                this.setGraphWithResponse(points);
+                this.setGraphResponse(points);
                 return;
             } else {
                 OutterMotion outterMotion = this.getOutterMotionWithoutTrees(graphState);
                 if (outterMotion != null) {
                     Point[] points = this.preparePointsToSend(graphState, outterMotion);
-                    this.setGraphWithResponse(points);
+                    this.setGraphResponse(points);
                     return;
                 }
             }
             graphState = graphStateHeap.pop();
         }
 
-        System.out.print("Losses :(\n");
-        System.exit(1);
+        System.out.println("Losses :(\n");
     }
 
     private boolean selectInnerMotion(GraphState graphState, InnerMotion motion) {
@@ -297,18 +301,24 @@ public class MatchManager {
         this.motionWithoutTrees();
     }
 
-    private void motion(){
+    private void motion() throws InterruptedException {
         while (block) {}
         block = true;
-        if(!rateStrategy)
+        if(!rateStrategy) {
             this.motionWithoutTrees();
+        }
         else
             this.motionWithTrees();
         block = false;
     }
 
-    public void game() {
+    public void game() throws InterruptedException {
         this.buildGraph();
+        this.setGraphInit();
+
+        Point[] points = this.parseService.parsePoints();
+        if(points != null)
+            this.setGraph(points);
 
         new Thread() {
             public void run() {
@@ -324,21 +334,17 @@ public class MatchManager {
             }
         }.start();
 
-//        Point[] points = this.parseService.parsePoints();
-//        if(points != null)
-//            this.setGraph(points);
-//
-//        while (true) {
-//            this.motion();
-//            this.setGraphWithRequest();
-//        }
-
         while (true) {
             this.motion();
-            graphService.showGraph(this.graph, boardsInRow);
-//            this.setGraphWithRequest();
-//            graphService.showGraph(this.graph, boardsInRow);
+            this.setGraphRequest();
         }
+
+//        while (true) {
+//            this.motion();
+//            graphService.showGraph(this.graph, boardsInRow);
+////            this.setGraphRequest();
+////            graphService.showGraph(this.graph, boardsInRow);
+//        }
     }
 
 }

@@ -1,7 +1,6 @@
 package com.mwroblewski.service;
 
 import com.mwroblewski.model.Point;
-
 import java.util.Scanner;
 
 public class ParseService {
@@ -14,7 +13,7 @@ public class ParseService {
         Scanner sc = new Scanner(System.in);
         String str = sc.next();
 
-        if(str.startsWith("start"))
+        if(str.contains("start"))
             return null;
 
         String[] strPoints = str.split(",");
