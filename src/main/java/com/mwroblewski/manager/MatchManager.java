@@ -324,21 +324,21 @@ public class MatchManager {
             }
         }.start();
 
-        Point[] points = this.parseService.parsePoints();
-        if(points != null)
-            this.setGraph(points);
+//        Point[] points = this.parseService.parsePoints();
+//        if(points != null)
+//            this.setGraph(points);
+//
+//        while (true) {
+//            this.motion();
+//            this.setGraphWithRequest();
+//        }
 
         while (true) {
             this.motion();
-            this.setGraphWithRequest();
-        }
-
-//        while (true) {
-//            this.motion();
+            graphService.showGraph(this.graph, boardsInRow);
+//            this.setGraphWithRequest();
 //            graphService.showGraph(this.graph, boardsInRow);
-////            this.setGraphWithRequest();
-////            graphService.showGraph(this.graph, boardsInRow);
-//        }
+        }
     }
 
 }

@@ -10,22 +10,33 @@ import java.util.Map;
 
 public class GraphBuilder {
 
-    private static AdjacencyType[][] createAdjacencyMatrix(int boardsNum) {
-        AdjacencyType[][] adjacencyMatrix = new AdjacencyType[boardsNum * boardsNum][boardsNum * boardsNum];
-        for (int i = 0; i < boardsNum * boardsNum; i++) {
-            if (i >= boardsNum)
-                adjacencyMatrix[i][i - boardsNum] = AdjacencyType.TOP;
+    private static AdjacencyType[][] createAdjacencyMatrix(int boardsInRow) {
+        AdjacencyType[][] adjacencyMatrix = new AdjacencyType[boardsInRow * boardsInRow][boardsInRow * boardsInRow];
+        for (int i = 0; i < boardsInRow * boardsInRow; i++) {
 
-            if (i < boardsNum * (boardsNum - 1))
-                adjacencyMatrix[i][i + boardsNum] = AdjacencyType.BOTTOM;
+            if (i >= 0 && i < boardsInRow)
+                adjacencyMatrix[i][(boardsInRow - 1) * boardsInRow + (i%boardsInRow)] = AdjacencyType.TOP;
+            else
+                adjacencyMatrix[i][i - boardsInRow] = AdjacencyType.TOP;
 
-            if (i % boardsNum == 0)
-                adjacencyMatrix[i][i + boardsNum - 1] = AdjacencyType.LEFT;
+            if (i >= (boardsInRow-1)*boardsInRow && i < boardsInRow * boardsInRow)
+                adjacencyMatrix[i][i % boardsInRow] = AdjacencyType.BOTTOM;
+            else
+                adjacencyMatrix[i][i + boardsInRow] = AdjacencyType.BOTTOM;
+
+//            if (i >= boardsInRow)
+//                adjacencyMatrix[i][i - boardsInRow] = AdjacencyType.TOP;
+//
+//            if (i < boardsInRow * (boardsInRow - 1))
+//                adjacencyMatrix[i][i + boardsInRow] = AdjacencyType.BOTTOM;
+
+            if (i % boardsInRow == 0)
+                adjacencyMatrix[i][i + boardsInRow - 1] = AdjacencyType.LEFT;
             else
                 adjacencyMatrix[i][i - 1] = AdjacencyType.LEFT;
 
-            if (i % boardsNum == boardsNum - 1)
-                adjacencyMatrix[i][i - boardsNum + 1] = AdjacencyType.RIGHT;
+            if (i % boardsInRow == boardsInRow - 1)
+                adjacencyMatrix[i][i - boardsInRow + 1] = AdjacencyType.RIGHT;
             else
                 adjacencyMatrix[i][i + 1] = AdjacencyType.RIGHT;
         }
@@ -49,7 +60,7 @@ public class GraphBuilder {
     }
 
     public static Graph<Integer, GraphState, AdjacencyType> build(int matchSize) {
-        int boardsNum = matchSize%3 == 0 ? matchSize/3 : matchSize/3 + 1;
+        int boardsNum = matchSize % 3 == 0 ? matchSize / 3 : matchSize / 3 + 1;
         return new Graph<Integer, GraphState, AdjacencyType>(createVertices(matchSize, boardsNum), createAdjacencyMatrix(boardsNum));
     }
 
