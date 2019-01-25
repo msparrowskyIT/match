@@ -36,6 +36,14 @@ public class Board {
         return isCorrectPoint(point) && this.grid[point.getY()][point.getX()] == 1;
     }
 
+    public boolean isFull() {
+        for (int y = 0; y < this.height; y++)
+            for (int x = 0; x < this.width; x++)
+                if(this.grid[y][x] != 0)
+                    return false;
+        return true;
+    }
+
     public boolean free(Point point) {
         if (isCorrectPoint(point) && this.isSet(point)) {
             this.grid[point.getY()][point.getX()] = 0;

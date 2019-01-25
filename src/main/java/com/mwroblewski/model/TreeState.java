@@ -9,7 +9,7 @@ import java.util.*;
 public class TreeState {
 
     private Board board;
-    private List<InnerMotion> innerMotions = new ArrayList<>();
+    private InnerMotion innerMotion;
     private List<OutterMotion> outterMotions = new ArrayList<>();
     private Statistics statistics = new Statistics();
 

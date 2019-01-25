@@ -9,6 +9,7 @@ public class OutterMotion {
 
     private Point point;
     private AdjacencyType type;
+    private double adjRate;
     private Statistics statistics = new Statistics();
 
     public OutterMotion(Point point, AdjacencyType type){

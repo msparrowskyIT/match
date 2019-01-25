@@ -98,7 +98,9 @@ public class TreeBuilder {
             innerMotion.getStatistics().addStatistics(childState.getStatistics(), true);
         });
 
-        parentState.setInnerMotions(sortInnerMotions(innerMotions));
+        List<InnerMotion> sortedInnerMotions = sortInnerMotions(innerMotions);
+        if(sortedInnerMotions.size() > 0)
+            parentState.setInnerMotion(sortedInnerMotions.get(0));
     }
 
     private static List<OutterMotion> sortOutterMotions(Set<OutterMotion> outterMotions) {
