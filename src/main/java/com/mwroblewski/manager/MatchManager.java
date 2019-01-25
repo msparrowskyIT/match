@@ -7,18 +7,15 @@ import com.mwroblewski.builder.GraphBuilder;
 import com.mwroblewski.builder.TreeBuilder;
 import com.mwroblewski.common.AdjacencyType;
 import com.mwroblewski.model.*;
-import com.mwroblewski.service.BoardService;
-import com.mwroblewski.service.GraphService;
-import com.mwroblewski.service.ParseService;
-import com.mwroblewski.service.TreeService;
+import com.mwroblewski.service.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MatchManager {
 
-    private ParseService parseService = new ParseService();
+    private MotionService motionService = new MotionService();
     private BoardService boardService = new BoardService();
+    private ParseService parseService = new ParseService();
     private TreeService treeService = new TreeService();
     private GraphService graphService = new GraphService();
 
@@ -44,6 +41,7 @@ public class MatchManager {
             return rate1 > rate2 ? 1 : (rate1 < rate2 ? -1 : 0);
         }
     };
+    private boolean rateStrategy = false;
     private boolean block = false;
 
     private Point[] preparePointsToSend(GraphState graphState, InnerMotion innerMotion) {
@@ -89,6 +87,17 @@ public class MatchManager {
         System.out.print("ok");
     }
 
+    private void buildTrees() {
+        Set<String> boardSizes = this.getBoardSizes(this.matchSize);
+        Map<String, Tree<TreeState>> trees = new HashMap<>();
+
+        boardSizes.forEach(s -> {
+            trees.put(s, TreeBuilder.build(Integer.valueOf(s.substring(0, 1)), Integer.valueOf(s.substring(2))));
+        });
+
+        this.trees = trees;
+    }
+
     private void sendPoints(Point[] points) {
         System.out.print(parseService.parsePoints(points));
     }
@@ -98,20 +107,32 @@ public class MatchManager {
             graphService.set(graph, point, boardsInRow);
         }
 
-        if (this.trees.size() > 0)
+        if (this.rateStrategy)
             this.fillGraph();
     }
 
-    private void setGraphRequest() {
+    private void setGraphWithRequest() {
         Point[] points = parseService.parsePoints();
         this.setGraph(points);
 
         System.out.print("ok");
     }
 
-    private void setGraphResponse(Point[] points) {
+    private void setGraphWithResponse(Point[] points) {
         this.sendPoints(points);
         this.setGraph(points);
+    }
+
+    private void setAndFillGraphWithResponse(GraphState state, Tree<TreeState> tree,  InnerMotion motion) {
+        Point[] points = this.preparePointsToSend(state, motion);
+        this.setGraphWithResponse(points);
+        this.fillGraphState(state, treeService.getTreeWithSetBoard(tree, state.getBoard()));
+    }
+
+    private void setAndFillGraphWithResponse(GraphState state, Tree<TreeState> tree,  OutterMotion motion) {
+        Point[] points = this.preparePointsToSend(state, motion);
+        this.setGraphWithResponse(points);
+        this.fillGraphState(state, treeService.getTreeWithSetBoard(tree, state.getBoard()));
     }
 
     private Heap<GraphState> buildHeap(Comparator<GraphState> comparator) {
@@ -122,27 +143,25 @@ public class MatchManager {
     }
 
     private InnerMotion getInnerMotionWithoutTrees(GraphState graphState) {
-        Set<InnerMotion> innerMotions = this.boardService.getAllInnerMotions(graphState.getBoard());
-        if (innerMotions.size() > 0)
-            return innerMotions.iterator().next();
+        Set<InnerMotion> motions = this.boardService.getAllInnerMotions(graphState.getBoard());
+        if (motions.size() > 0)
+            return motions.iterator().next();
         else
             return null;
     }
 
     private OutterMotion getOutterMotionWithoutTrees(GraphState graphState) {
+        Set<OutterMotion> motions = this.boardService.getAllOutterMotions(graphState.getBoard());
+
         for (AdjacencyType adjType : AdjacencyType.values()) {
-            List<OutterMotion> outterMotions = this.boardService.getAllOutterMotions(graphState.getBoard())
-                    .stream()
-                    .filter(m -> adjType.equals(m.getType()))
-                    .collect(Collectors.toList());
-
-            if (outterMotions.size() != 0) {
+            List<OutterMotion> filterMotions = motionService.filterOutterMotions(motions, adjType);
+            if (filterMotions.size() != 0) {
                 GraphState adjGraphState = graphService.getState(this.graph, graphState.getGraphIndex(), adjType);
-
-                if(adjGraphState == null)
+                // no adjBoard in adjacency matrix
+                if (adjGraphState == null)
                     continue;
 
-                Optional<OutterMotion> optOutterMotion = outterMotions
+                Optional<OutterMotion> optMotion = filterMotions
                         .stream()
                         .filter(m -> {
                             Point adjPoint = boardService.getAdjacencyPoint(adjGraphState.getBoard(), m);
@@ -150,8 +169,8 @@ public class MatchManager {
                         })
                         .findFirst();
 
-                if (optOutterMotion.isPresent())
-                    return optOutterMotion.get();
+                if (optMotion.isPresent())
+                    return optMotion.get();
             }
         }
 
@@ -159,24 +178,24 @@ public class MatchManager {
     }
 
     private OutterMotion getOutterMotionWithTrees(GraphState graphState) {
+        List<OutterMotion> motions = graphState.getOutterMotions();
+
         for (AdjacencyType adjType : AdjacencyType.values()) {
-            List<OutterMotion> outterMotions = graphState.getOutterMotions()
-                    .stream()
-                    .filter(m -> adjType.equals(m.getType()))
-                    .collect(Collectors.toList());
+            List<OutterMotion> filterMotions = this.motionService.filterOutterMotions(motions, adjType);
 
-            if (outterMotions.size() != 0) {
+            if (filterMotions.size() != 0) {
                 GraphState adjGraphState = graphService.getState(this.graph, graphState.getGraphIndex(), adjType);
-
-                if(adjGraphState == null)
+                // no adjBoard in adjacency matrix
+                if (adjGraphState == null)
                     continue;
 
                 Tree<TreeState> adjTree = this.trees.get(adjGraphState.getTreeKey());
-                Optional<OutterMotion> optOutterMotion = outterMotions
+                Optional<OutterMotion> optMotion = filterMotions
                         .stream()
                         .filter(m -> {
                             Point adjPoint = boardService.getAdjacencyPoint(adjGraphState.getBoard(), m);
-                            if(adjGraphState.getBoard().isSet(adjPoint))
+                            // adjPoint is set in adjBoard
+                            if (adjGraphState.getBoard().isSet(adjPoint))
                                 return false;
 
                             Board adjBoard = boardService.set(adjGraphState.getBoard(), adjPoint);
@@ -192,8 +211,8 @@ public class MatchManager {
                             return adjRate1 > adjRate2 ? 1 : (adjRate1 < adjRate2 ? -1 : 0);
                         });
 
-                if (optOutterMotion.isPresent())
-                    return optOutterMotion.get();
+                if (optMotion.isPresent())
+                    return optMotion.get();
             }
 
         }
@@ -208,13 +227,13 @@ public class MatchManager {
             InnerMotion innerMotion = this.getInnerMotionWithoutTrees(graphState);
             if (innerMotion != null) {
                 Point[] points = this.preparePointsToSend(graphState, innerMotion);
-                this.setGraphResponse(points);
+                this.setGraphWithResponse(points);
                 return;
             } else {
                 OutterMotion outterMotion = this.getOutterMotionWithoutTrees(graphState);
                 if (outterMotion != null) {
                     Point[] points = this.preparePointsToSend(graphState, outterMotion);
-                    this.setGraphResponse(points);
+                    this.setGraphWithResponse(points);
                     return;
                 }
             }
@@ -225,14 +244,30 @@ public class MatchManager {
         System.exit(1);
     }
 
-    private boolean selectInnerMotion(GraphState graphState, InnerMotion innerMotion) {
-        double motionRate = innerMotion.getStatistics().getRate();
-        return graphState.getStatistics().getRate() < motionRate || motionRate == 1.0;
+    private boolean selectInnerMotion(GraphState graphState, InnerMotion motion) {
+        double rate = motion.getStatistics().getRate();
+        return graphState.getStatistics().getRate() < rate || rate == 1.0;
     }
 
-    private boolean selectOutterMotion(GraphState graphState, OutterMotion outterMotion) {
-        double motionRate = outterMotion.getStatistics().getRate();
-        return graphState.getStatistics().getRate() < motionRate || motionRate == 1.0;
+    private boolean selectOutterMotion(GraphState graphState, OutterMotion motion) {
+        double rate = motion.getStatistics().getRate();
+        return graphState.getStatistics().getRate() < rate || rate == 1.0;
+    }
+
+    private void fillGraphState(GraphState graphState, Tree<TreeState> tree) {
+        graphState.setTree(tree);
+        TreeState treeState = tree.getRoot().getData();
+        graphState.setInnerMotion(treeState.getInnerMotion());
+        graphState.setOutterMotions(treeState.getOutterMotions());
+        graphState.setStatistics(treeState.getStatistics());
+    }
+
+    private void fillGraph() {
+        for (GraphState graphState : graph.getVertices().values()) {
+            String treeKey = graphState.getTreeKey();
+            Tree<TreeState> tree = this.treeService.getTreeWithSetBoard(trees.get(treeKey), graphState.getBoard());
+            this.fillGraphState(graphState, tree);
+        }
     }
 
     private void motionWithTrees() {
@@ -250,14 +285,10 @@ public class MatchManager {
                     innerMotion = null;
 
             if (innerMotion != null && this.selectInnerMotion(graphState, innerMotion)) {
-                Point[] points = this.preparePointsToSend(graphState, innerMotion);
-                this.setGraphResponse(points);
-                this.fillGraphState(graphState, treeService.getTreeWithSetBoard(tree, graphState.getBoard()));
+                this.setAndFillGraphWithResponse(graphState, tree, innerMotion);
                 return;
             } else if (outterMotion != null && this.selectOutterMotion(graphState, outterMotion)) {
-                Point[] points = this.preparePointsToSend(graphState, outterMotion);
-                this.setGraphResponse(points);
-                this.fillGraphState(graphState, treeService.getTreeWithSetBoard(tree, graphState.getBoard()));
+                this.setAndFillGraphWithResponse(graphState, tree, outterMotion);
                 return;
             }
             graphState = graphStateHeap.pop();
@@ -266,87 +297,48 @@ public class MatchManager {
         this.motionWithoutTrees();
     }
 
-    private void fillGraphState(GraphState graphState, Tree<TreeState> tree) {
-        graphState.setTree(tree);
-        TreeState treeState = tree.getRoot().getData();
-        graphState.setInnerMotion(treeState.getInnerMotion());
-        graphState.setOutterMotions(treeState.getOutterMotions());
-        graphState.setStatistics(treeState.getStatistics());
-    }
-
-    // {6;0},{6;1},{3;3},{3;4},{0;0},{0;1},{1;1},{1;2}
-    private void fillGraph() {
-        for (GraphState graphState : graph.getVertices().values()) {
-            String treeKey = graphState.getTreeKey();
-            Tree<TreeState> tree = this.treeService.getTreeWithSetBoard(trees.get(treeKey), graphState.getBoard());
-            this.fillGraphState(graphState, tree);
-        }
+    private void motion(){
+        while (block) {}
+        block = true;
+        if(!rateStrategy)
+            this.motionWithoutTrees();
+        else
+            this.motionWithTrees();
+        block = false;
     }
 
     public void game() {
-//        this.buildGraph();
+        this.buildGraph();
 
-//        new Thread() {
-//            public void run() {
-//                buildTrees();
-//            }
-//        }.start();
+        new Thread() {
+            public void run() {
+                buildTrees();
+
+                while (block) {}
+
+                block = true;
+                fillGraph();
+
+                rateStrategy = true;
+                block = false;
+            }
+        }.start();
+
+        Point[] points = this.parseService.parsePoints();
+        if(points != null)
+            this.setGraph(points);
+
+        while (true) {
+            this.motion();
+            this.setGraphWithRequest();
+        }
 
 //        while (true) {
-//            this.setGraphRequest();
+//            this.motion();
 //            graphService.showGraph(this.graph, boardsInRow);
-//            this.motionWithoutTrees();
-//            graphService.showGraph(this.graph, boardsInRow);
-//
+////            this.setGraphWithRequest();
+////            graphService.showGraph(this.graph, boardsInRow);
 //        }
-        this.buildGraph();
-        this.buildTrees();
-        this.fillGraph();
-        while (true) {
-            this.motionWithTrees();
-            graphService.showGraph(this.graph, boardsInRow);
-//            this.setGraphRequest();
-//            graphService.showGraph(this.graph, boardsInRow);
-        }
     }
-
-    private void buildTrees() {
-        Set<String> boardSizes = this.getBoardSizes(this.matchSize);
-        Map<String, Tree<TreeState>> trees = new HashMap<>();
-
-        boardSizes.forEach(s -> {
-            trees.put(s, TreeBuilder.build(Integer.valueOf(s.substring(0, 1)), Integer.valueOf(s.substring(2))));
-        });
-
-        this.trees = trees;
-
-//        ExecutorService executorService = Executors.newFixedThreadPool(boardSizes.size());
-//        List<Callable<Void>> tasks = new ArrayList<>();
-//        boardSizes.forEach(s -> {
-//            tasks.add(() -> {
-//                Tree<TreeState> tree = TreeBuilder.build(Integer.valueOf(s.substring(0, 1)), Integer.valueOf(s.substring(2)));
-//                trees.put(s, tree);
-//                return null;
-//            });
-//        });
-//
-//
-//        try {
-//            List<Future<Void>> futures = executorService.invokeAll(tasks);
-//            for (Future<Void> future : futures) {
-//                try {
-//                    future.get();
-//
-//                } catch (InterruptedException ie) {
-//                    Thread.currentThread().interrupt(); // ignore/reset
-//                }
-//            }
-//        } catch (Exception err) {
-//            err.printStackTrace();
-//        }
-//
-//        this.trees = trees;
-    }
-
 
 }

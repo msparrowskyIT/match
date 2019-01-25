@@ -12,8 +12,12 @@ public class ParseService {
 
     public Point[] parsePoints() {
         Scanner sc = new Scanner(System.in);
-        String[] strPoints = sc.next().split(",");
+        String str = sc.next();
 
+        if(str.startsWith("start"))
+            return null;
+
+        String[] strPoints = str.split(",");
         Point[] points = new Point[strPoints.length];
         for (int i = 0; i < strPoints.length; i++) {
             String strPoint = strPoints[i];
